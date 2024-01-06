@@ -9,8 +9,18 @@ import cv2 as cv
 __author__ = "Bastien Baudouin, Guillaume Polizzi"
 
 
-# Code de démo
-img = cv.imread("./img/carc1.jpg")
+def reframeImage(img, minX, maxX, minY, maxY):
+    """
+    Renvoie une portion de l'image.
 
-cv.imshow("Display window", img)
-k = cv.waitKey(0) # Wait for a keystroke in the window
+    img: l'image à recadrer
+    minX: Coordonnée X du coin supérieur gauche de l'image recadrée 
+    maxX: Coordonnée X du coin inférieur droit de l'image recadrée
+    minY: Coordonnée Y du coin supérieur gauche de l'image recadrée
+    maxY: Coordonnée Y du coin inférieur droit de l'image recadrée
+
+    return l'image recadrée
+    """
+    return img[minY:maxY, minX:maxX]
+
+
