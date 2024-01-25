@@ -38,9 +38,18 @@ def measureFatThickness(img):
     # Recherche des pixels qui délimitent la couche de gras
     for x in range(0, img.shape[1]):
         background = True
+        previousPixelRed = img[0][x][2]
         for y in range(0, img.shape[0]):
-            if (not background) or (img[y][x][2] > 100):
-                background = False
+            # Détection de la fin de l'arrière plan sombre
+            if (background):
+                if (img[y][x][2] > 100):
+                    background = False
+            # Traitements sur la couche de gras
+            else:
+                if (abs(int(img[y][x][2]) - int(previousPixelRed)) > 50):
+                    img[y][x][1] = 255
+
+                previousPixelRed = img[y][x][2]
 
     # Calcul de l'épaisseur minimale de la couche de gras
 
