@@ -24,3 +24,26 @@ def reframeImage(img, minX, maxX, minY, maxY):
     return img[minY:maxY, minX:maxX]
 
 
+def measureFatThickness(img):
+    """
+    Mesure l'épaisseur minimale de la couche de gras sur une image.
+
+    img: l'image à analyser
+
+    return l'épaisseur de la couche de gras
+    """
+    # Recadrage manuel autour du nucleus medius
+    img = reframeImage(img, 0, 300, 0, 400)
+
+    # Recherche des pixels qui délimitent la couche de gras
+    for x in range(0, img.shape[1]):
+        background = True
+        for y in range(0, img.shape[0]):
+            if (not background) or (img[y][x][2] > 100):
+                background = False
+
+    # Calcul de l'épaisseur minimale de la couche de gras
+
+    cv.imshow("Display window", img)
+    k = cv.waitKey(0) # Wait for a keystroke in the window
+    return 0
