@@ -60,7 +60,10 @@ def measureFatThickness(img):
                 color = img[y][x][2]
         
     # Calcul de l'épaisseur minimale de la couche de gras
-    print("Epaisseur minimale de la couche de gras: " + str(findSmallestThickness(topLimit, bottomLimit)))
+    distance, cords = findSmallestThickness(topLimit, bottomLimit)
+    print("Epaisseur minimale de la couche de gras: " + str(distance) + " pixels")
+    img[cords[0][1]][cords[0][0]] = [255, 0, 0]
+    img[cords[1][1]][cords[1][0]] = [255, 0, 0]
 
     cv.namedWindow("Display window", cv.WINDOW_NORMAL)
     cv.resizeWindow("Display window", 800, 900)
@@ -78,6 +81,13 @@ def findSmallestThickness(topLimit, bottomLimit):
 
     return la distance minimale entre les deux ensembles de pixels
     """
-    return min(math.sqrt((pixelTop[0] - pixelBottom[0])**2 + (pixelTop[1] - pixelBottom[1])**2) 
-        for pixelTop in topLimit 
-        for pixelBottom in bottomLimit)
+    distance = 10000
+    cords = []
+    for pixelTop in topLimit:
+        for pixelBottom in bottomLimit:
+            d = math.sqrt((pixelTop[0] - pixelBottom[0])**2 + (pixelTop[1] - pixelBottom[1])**2)
+            if d < distance:
+                distance = d
+                cords = [pixelTop, pixelBottom]
+
+    return distance, cords
