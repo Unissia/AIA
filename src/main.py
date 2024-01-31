@@ -10,6 +10,6 @@ __author__ = "Bastien Baudouin, Guillaume Polizzi"
 
 
 # Chargement de l'image
-img = cv.imread("./img/000002.jpg")
+img = cv.imread("./img/test/test-simplified-1.png")
 
 measureFatThickness(img)
