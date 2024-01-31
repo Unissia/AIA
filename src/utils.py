@@ -5,6 +5,7 @@ Ensemble de fonctions utilitaires pour l'analyse de l'image.
 """
 
 import cv2 as cv
+import math
 
 __author__ = "Bastien Baudouin, Guillaume Polizzi"
 
@@ -69,3 +70,17 @@ def measureFatThickness(img):
     cv.imshow("Display window", img)
     k = cv.waitKey(0) # Wait for a keystroke in the window
     return 0
+
+def findSmallestThickness(topLimit, bottomLimit):
+    """
+    Trouve l'épaisseur minimale de la couche de gras.
+    Calcule la distance minimale entre les pixels de la limite supérieure et inférieure de la couche de gras.
+
+    topLimit: pixels de la limite supérieure de la couche de gras
+    bottomLimit: pixels de la limite inférieure de la couche de gras
+
+    return la distance minimale entre les deux ensembles de pixels
+    """
+    return min(math.sqrt((pixelTop[0] - pixelBottom[0])**2 + (pixelTop[1] - pixelBottom[1])**2) 
+        for pixelTop in topLimit 
+        for pixelBottom in bottomLimit)
