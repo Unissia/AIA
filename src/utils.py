@@ -34,7 +34,7 @@ def measureFatThickness(img):
     return l'épaisseur de la couche de gras
     """
     # Seuil d'acceptation
-    differenceThresold = 50
+    differenceThresold = 70
 
     # Limites de la couche du gras
     topLimit = []
