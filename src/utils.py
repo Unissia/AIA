@@ -50,17 +50,19 @@ def measureFatThickness(img):
         for y in range(0, img.shape[0]):
             if layers > 1:
                 break
-            
-            if (abs(int(img[y][x][2]) - color) > differenceThresold): #img[y][x][2] != color:
+            #print(" x: " + str(x) + " y: " + str(y) + " red: " + str(img[y][x][2]) + "\tcolor: " + str(color) + " diff: " + str(abs(int(img[y][x][2]) - color)))
+            if (abs(int(img[y][x][2]) - color) > differenceThresold): 
                 if layers == 0:
                     topLimit.append((x, y))
+                    color = int(img[y][x][2])
                     img[y][x] = [0, 0, 255]
+
                 else:
                     bottomLimit.append((x, y))
+                    color = int(img[y][x][2])
                     img[y][x] = [0, 255, 0]
 
                 layers += 1
-                color = img[y][x][2]
         
     # Calcul de l'épaisseur minimale de la couche de gras
     distance, cords = findSmallestThickness(topLimit, bottomLimit)
