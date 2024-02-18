@@ -33,6 +33,9 @@ def measureFatThickness(img):
 
     return l'épaisseur de la couche de gras
     """
+    # Seuil d'acceptation
+    differenceThresold = 50
+
     # Limites de la couche du gras
     topLimit = []
     bottomLimit = []
@@ -47,8 +50,8 @@ def measureFatThickness(img):
         for y in range(0, img.shape[0]):
             if layers > 1:
                 break
-
-            if img[y][x][2] != color:
+            
+            if (abs(int(img[y][x][2]) - color) > differenceThresold): #img[y][x][2] != color:
                 if layers == 0:
                     topLimit.append((x, y))
                     img[y][x] = [0, 0, 255]
@@ -62,6 +65,7 @@ def measureFatThickness(img):
     # Calcul de l'épaisseur minimale de la couche de gras
     distance, cords = findSmallestThickness(topLimit, bottomLimit)
     print("Epaisseur minimale de la couche de gras: " + str(distance) + " pixels")
+    print("Points retenus : " + str(cords))
     img[cords[0][1]][cords[0][0]] = [255, 0, 0]
     img[cords[1][1]][cords[1][0]] = [255, 0, 0]
 
