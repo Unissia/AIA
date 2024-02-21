@@ -4,7 +4,14 @@
 Ensemble de fonctions utilitaires pour l'analyse de l'image.
 """
 
-import cv2 as cv
+import numpy as np
+from PIL import Image
+import matplotlib.pyplot as plt
+import cv2
+import os
+import time
+from sklearn.cluster import KMeans
+from skimage.color import rgb2lab, lab2rgb, rgb2hsv, hsv2rgb
 import math
 
 __author__ = "Bastien Baudouin, Guillaume Polizzi"
@@ -71,10 +78,10 @@ def measureFatThickness(img):
     img[cords[0][1]][cords[0][0]] = [255, 0, 0]
     img[cords[1][1]][cords[1][0]] = [255, 0, 0]
 
-    cv.namedWindow("Display window", cv.WINDOW_NORMAL)
-    cv.resizeWindow("Display window", 800, 900)
-    cv.imshow("Display window", img)
-    k = cv.waitKey(0) # Wait for a keystroke in the window
+    cv2.namedWindow("Display window", cv2.WINDOW_NORMAL)
+    cv2.resizeWindow("Display window", 800, 900)
+    cv2.imshow("Display window", img)
+    k = cv2.waitKey(0) # Wait for a keystroke in the window
     return 0
 
 def findSmallestThickness(topLimit, bottomLimit):
