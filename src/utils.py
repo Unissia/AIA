@@ -17,11 +17,11 @@ import math
 __author__ = "Bastien Baudouin, Guillaume Polizzi"
 
 
-def reframeImage(img, minX, maxX, minY, maxY):
+def reframeImage(image, minX, maxX, minY, maxY):
     """
     Renvoie une portion de l'image.
 
-    img: l'image à recadrer
+    image: l'image à recadrer
     minX: Coordonnée X du coin supérieur gauche de l'image recadrée 
     maxX: Coordonnée X du coin inférieur droit de l'image recadrée
     minY: Coordonnée Y du coin supérieur gauche de l'image recadrée
@@ -29,18 +29,18 @@ def reframeImage(img, minX, maxX, minY, maxY):
 
     return l'image recadrée
     """
-    return img[minY:maxY, minX:maxX]
+    return image[minY:maxY, minX:maxX]
 
 
-def measureFatThickness(img):
+def measureFatThickness(image):
     """
     Mesure l'épaisseur minimale de la couche de gras sur une image.
 
-    img: l'image à analyser
+    image: l'image à analyser
 
     return l'épaisseur de la couche de gras
     """
-    # Seuil d'acceptation
+    # thresold d'acceptation
     differenceThresold = 70
 
     # Limites de la couche du gras
@@ -48,26 +48,26 @@ def measureFatThickness(img):
     bottomLimit = []
 
     # Recadrage manuel autour du nucleus medius
-    img = reframeImage(img, 0, 300, 0, 400)
+    image = reframeImage(image, 0, 300, 0, 400)
 
     # Recherche des pixels qui délimitent la couche de gras
-    for x in range(0, img.shape[1]):
-        color = img[0][x][2]
+    for x in range(0, image.shape[1]):
+        color = image[0][x][2]
         layers = 0
-        for y in range(0, img.shape[0]):
+        for y in range(0, image.shape[0]):
             if layers > 1:
                 break
-            #print(" x: " + str(x) + " y: " + str(y) + " red: " + str(img[y][x][2]) + "\tcolor: " + str(color) + " diff: " + str(abs(int(img[y][x][2]) - color)))
-            if (abs(int(img[y][x][2]) - color) > differenceThresold): 
+
+            if (abs(int(image[y][x][2]) - color) > differenceThresold): 
                 if layers == 0:
                     topLimit.append((x, y))
-                    color = int(img[y][x][2])
-                    img[y][x] = [0, 0, 255]
+                    color = int(image[y][x][2])
+                    image[y][x] = [0, 0, 255]
 
                 else:
                     bottomLimit.append((x, y))
-                    color = int(img[y][x][2])
-                    img[y][x] = [0, 255, 0]
+                    color = int(image[y][x][2])
+                    image[y][x] = [0, 255, 0]
 
                 layers += 1
         
@@ -75,14 +75,15 @@ def measureFatThickness(img):
     distance, cords = findSmallestThickness(topLimit, bottomLimit)
     print("Epaisseur minimale de la couche de gras: " + str(distance) + " pixels")
     print("Points retenus : " + str(cords))
-    img[cords[0][1]][cords[0][0]] = [255, 0, 0]
-    img[cords[1][1]][cords[1][0]] = [255, 0, 0]
+    image[cords[0][1]][cords[0][0]] = [255, 0, 0]
+    image[cords[1][1]][cords[1][0]] = [255, 0, 0]
 
     cv2.namedWindow("Display window", cv2.WINDOW_NORMAL)
     cv2.resizeWindow("Display window", 800, 900)
-    cv2.imshow("Display window", img)
+    cv2.imshow("Display window", image)
     k = cv2.waitKey(0) # Wait for a keystroke in the window
     return 0
+
 
 def findSmallestThickness(topLimit, bottomLimit):
     """
@@ -104,3 +105,67 @@ def findSmallestThickness(topLimit, bottomLimit):
                 cords = [pixelTop, pixelBottom]
 
     return distance, cords
+
+
+def drawPatternBox(image, pattern_nucleus, pattern_nucleus_2):
+    """
+    Dessine un rectangle autour des motifs de nucleus medius et de colonne vertébrale trouvés.
+
+    image: l'image sur laquelle rechercher le motif
+    """
+    drawPatternBoxNucleus(image, pattern_nucleus, pattern_nucleus_2)
+    drawPatternBoxBackbone(image, pattern_list)
+
+
+def drawPatternBoxNucleus(image, pattern_nucleus, pattern_nucleus_2):
+    """
+    Dessine un rectangle autour du nucleus medius.
+
+    image: l'image sur laquelle rechercher le motif
+    pattern: le motif à rechercher
+    """
+    result_nucleus = cv2.matchTemplate(image, pattern_nucleus, cv2.TM_CCOEFF_NORMED)
+    _, max_val_nucleus, _, max_loc_nucleus = cv2.minMaxLoc(result_nucleus)
+    nucleus_thresold = 0.6
+
+    if max_val_nucleus > nucleus_thresold:
+        h, w, _ = pattern_nucleus.shape
+        top_left_nucleus = max_loc_nucleus
+        bottom_right_nucleus = (top_left_nucleus[0] + w, top_left_nucleus[1] + h)
+        cv2.rectangle(image, top_left_nucleus, bottom_right_nucleus, (0, 255, 0), 2)
+        
+        # Extraction de la région d'intérêt (ROI) correspondant à la zone détectée par "pattern_nucleus"
+        roi_nucleus = image[top_left_nucleus[1]:bottom_right_nucleus[1], top_left_nucleus[0]:bottom_right_nucleus[0]]
+        
+        # Recherche de "pattern_nucleus_2" dans la région d'intérêt
+        result_nucleus_2 = cv2.matchTemplate(roi_nucleus, pattern_nucleus_2, cv2.TM_CCOEFF_NORMED)
+        _, max_val_nucleus_2, _, max_loc_nucleus_2 = cv2.minMaxLoc(result_nucleus_2)
+        nucleus_thresold_2 = 0.6
+        
+        if max_val_nucleus_2 > nucleus_thresold_2:
+            h_2, w_2, _ = pattern_nucleus_2.shape
+            top_left_nucleus_2 = (max_loc_nucleus_2[0] + top_left_nucleus[0], max_loc_nucleus_2[1] + top_left_nucleus[1])
+            bottom_right_nucleus_2 = (top_left_nucleus_2[0] + w_2, top_left_nucleus_2[1] + h_2)
+            cv2.rectangle(image, top_left_nucleus_2, bottom_right_nucleus_2, (0, 0, 255), 2)
+
+
+def drawPatternBoxBackbone(image, pattern_list):
+    """
+    Dessine un rectangle autour de la colonne vertébrale.
+
+    image: l'image sur laquelle rechercher le motif
+    pattern_list: les motifs à rechercher
+    """
+    best_match_score = float('-inf')
+    best_max_loc = None
+    best_pattern_backbone = None
+
+    for pattern_backbone in pattern_list:
+        result_backbone = cv2.matchTemplate(image, pattern_backbone, cv2.TM_CCOEFF_NORMED)
+        _, max_val_backbone, _, max_loc_backbone = cv2.minMaxLoc(result_backbone)
+        thresold_backbone = 0.4
+        
+        if max_val_backbone > thresold_backbone and max_val_backbone > best_match_score:
+            best_match_score = max_val_backbone
+            best_max_loc = max_loc_backbone
+            best_pattern_backbone = pattern_backbone

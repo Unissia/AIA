@@ -15,6 +15,7 @@ from skimage.color import rgb2lab, lab2rgb, rgb2hsv, hsv2rgb
 
 __author__ = "Bastien Baudouin, Guillaume Polizzi"
 
+start_time = time.time()
 
 # Chargement de l'image
 img = cv2.imread("./img/simplified-000020.jpg")
@@ -30,8 +31,8 @@ if pattern_nucleus_2 is None:
     print("Erreur: Impossible de charger le motif de la pointe du nucleus medius.")
     exit()
 
-pattern_cotes = cv2.imread('./img/Motifs/colonne/motif_bas_1.png')
-if pattern_cotes is None:
+pattern_backbone = cv2.imread('./img/Motifs/colonne/motif_bas_1.png')
+if pattern_backbone is None:
     print("Erreur: Impossible de charger le motif de la colonne vertébrale.")
     exit()
 
@@ -53,6 +54,8 @@ for filename in os.listdir(pattern_directory):
         else:
             print(f"Erreur: Impossible de charger l'image {pattern_path}.")
 
-
+# Dossiers de stockage des images intermédiaires et résultats
+source_folder = "./Images_originales"
+destination_folder = "./Images_finales"
 
 measureFatThickness(img)
