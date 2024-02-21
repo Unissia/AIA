@@ -107,17 +107,46 @@ def findSmallestThickness(topLimit, bottomLimit):
     return distance, cords
 
 
-def drawPatternBox(image, pattern_nucleus, pattern_nucleus_2):
+def drawPatternBox(image, pattern_nucleus, pattern_nucleus_2, pattern_list):
     """
     Dessine un rectangle autour des motifs de nucleus medius et de colonne vertébrale trouvés.
 
     image: l'image sur laquelle rechercher le motif
     """
-    drawPatternBoxNucleus(image, pattern_nucleus, pattern_nucleus_2)
-    drawPatternBoxBackbone(image, pattern_list)
+    marker_nucleus = (0,0)
+    marker_backbone = (0,0)
+
+    nucleus_thresold = 0.6
+    nucleus_thresold_2 = 0.6
+    backbone_thresold = 0.4
 
 
-def drawPatternBoxNucleus(image, pattern_nucleus, pattern_nucleus_2):
+    max_val_nucleus_2, top_left_nucleus, bottom_right_nucleus, top_left_nucleus_2, bottom_right_nucleus_2 = drawPatternBoxNucleus(image, pattern_nucleus, pattern_nucleus_2, nucleus_thresold, nucleus_thresold_2)
+    best_backbone_pattern, top_left_backbone, bottom_right_backbone = drawPatternBoxBackbone(image, pattern_list, backbone_thresold)
+
+    # On rajoute la prise de mesure grossière
+    if max_val_nucleus_2 < nucleus_thresold_2: 
+        x, y = bottom_right_nucleus
+        marker_nucleus = (x - 40, y - 40)
+    else:
+        x, y = bottom_right_nucleus_2
+        marker_nucleus = (x, y)
+        
+    x_2,y_2 = top_left_backbone
+    x_3, y_3 = bottom_right_backbone
+    marker_backbone = (marker_nucleus[0], int((y_2 + y_3) / 2))
+    
+    # On vérifie si les cotes sont bien situé en dessous du nucleus, 
+    # si ce n'est pas le cas c'est que la détecton à été mal effectuée 
+    if (marker_nucleus[1] < marker_backbone[1]):
+        cv2.line(image, marker_nucleus, marker_backbone, (255, 0, 0), 2)
+    else: 
+        best_backbone_pattern = None
+
+    return [image, best_backbone_pattern is not None, top_left_nucleus, bottom_right_nucleus, marker_nucleus, marker_backbone]
+
+
+def drawPatternBoxNucleus(image, pattern_nucleus, pattern_nucleus_2, nucleus_thresold, nucleus_thresold_2):
     """
     Dessine un rectangle autour du nucleus medius.
 
@@ -126,7 +155,6 @@ def drawPatternBoxNucleus(image, pattern_nucleus, pattern_nucleus_2):
     """
     result_nucleus = cv2.matchTemplate(image, pattern_nucleus, cv2.TM_CCOEFF_NORMED)
     _, max_val_nucleus, _, max_loc_nucleus = cv2.minMaxLoc(result_nucleus)
-    nucleus_thresold = 0.6
 
     if max_val_nucleus > nucleus_thresold:
         h, w, _ = pattern_nucleus.shape
@@ -140,7 +168,6 @@ def drawPatternBoxNucleus(image, pattern_nucleus, pattern_nucleus_2):
         # Recherche de "pattern_nucleus_2" dans la région d'intérêt
         result_nucleus_2 = cv2.matchTemplate(roi_nucleus, pattern_nucleus_2, cv2.TM_CCOEFF_NORMED)
         _, max_val_nucleus_2, _, max_loc_nucleus_2 = cv2.minMaxLoc(result_nucleus_2)
-        nucleus_thresold_2 = 0.6
         
         if max_val_nucleus_2 > nucleus_thresold_2:
             h_2, w_2, _ = pattern_nucleus_2.shape
@@ -148,8 +175,9 @@ def drawPatternBoxNucleus(image, pattern_nucleus, pattern_nucleus_2):
             bottom_right_nucleus_2 = (top_left_nucleus_2[0] + w_2, top_left_nucleus_2[1] + h_2)
             cv2.rectangle(image, top_left_nucleus_2, bottom_right_nucleus_2, (0, 0, 255), 2)
 
+    return max_val_nucleus_2, top_left_nucleus, bottom_right_nucleus, top_left_nucleus_2, bottom_right_nucleus_2
 
-def drawPatternBoxBackbone(image, pattern_list):
+def drawPatternBoxBackbone(image, pattern_list, backbone_thresold):
     """
     Dessine un rectangle autour de la colonne vertébrale.
 
@@ -158,14 +186,21 @@ def drawPatternBoxBackbone(image, pattern_list):
     """
     best_match_score = float('-inf')
     best_max_loc = None
-    best_pattern_backbone = None
+    best_backbone_pattern = None
 
     for pattern_backbone in pattern_list:
         result_backbone = cv2.matchTemplate(image, pattern_backbone, cv2.TM_CCOEFF_NORMED)
         _, max_val_backbone, _, max_loc_backbone = cv2.minMaxLoc(result_backbone)
-        thresold_backbone = 0.4
-        
-        if max_val_backbone > thresold_backbone and max_val_backbone > best_match_score:
+
+        if max_val_backbone > backbone_thresold and max_val_backbone > best_match_score:
             best_match_score = max_val_backbone
             best_max_loc = max_loc_backbone
-            best_pattern_backbone = pattern_backbone
+            best_backbone_pattern = pattern_backbone
+
+    if best_backbone_pattern is not None:
+        h, w, _ = best_backbone_pattern.shape
+        top_left_backbone = best_max_loc
+        bottom_right_backbone = (top_left_backbone[0] + w, top_left_backbone[1] + h)
+        cv2.rectangle(image, top_left_backbone, bottom_right_backbone, (0, 255, 0), 2)
+
+    return best_backbone_pattern, top_left_backbone, bottom_right_backbone
