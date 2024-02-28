@@ -177,6 +177,7 @@ def drawPatternBoxNucleus(image, pattern_nucleus, pattern_nucleus_2, nucleus_thr
 
     return max_val_nucleus_2, top_left_nucleus, bottom_right_nucleus, top_left_nucleus_2, bottom_right_nucleus_2
 
+
 def drawPatternBoxBackbone(image, pattern_list, backbone_thresold):
     """
     Dessine un rectangle autour de la colonne vertébrale.
@@ -204,3 +205,32 @@ def drawPatternBoxBackbone(image, pattern_list, backbone_thresold):
         cv2.rectangle(image, top_left_backbone, bottom_right_backbone, (0, 255, 0), 2)
 
     return best_backbone_pattern, top_left_backbone, bottom_right_backbone
+
+
+def applyKmeans(initial_image, k):
+    """
+    Réduit le nombre de couleurs d'une image à l'aide de l'algorithme K-Means.
+
+    initial_image: l'image à traiter
+    k: le nombre de couleurs à conserver
+
+    return l'image traitée
+    """
+    image = initial_image
+    pixel_matrix = np.array(image)
+    
+    # Redimensionner la matrice de pixels en une liste de pixels
+    pixels = pixel_matrix.reshape(-1, 3)
+
+    # Appliquer K-Means pour réduire les couleurs
+    kmeans = KMeans(n_clusters=k, random_state=10, n_init=10)
+    kmeans.fit(pixels)
+    labels = kmeans.predict(pixels)
+    cluster_centers = kmeans.cluster_centers_
+
+    # Remplacer les couleurs des pixels par les couleurs moyennes des catégories
+    pixels_reduced = cluster_centers[labels].reshape(pixel_matrix.shape)
+
+    # Créer une nouvelle image à partir des pixels réduits
+    image_reduced = Image.fromarray(pixels_reduced.astype('uint8')) 
+    return image_reduced

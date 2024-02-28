@@ -53,9 +53,11 @@ source_folder = "./Images_originales"
 destination_folder = "./Images_finales"
 
 # measureFatThickness(image)
-drawPatternBox(image, pattern_nucleus, pattern_nucleus_2, pattern_list)
+# drawPatternBox(image, pattern_nucleus, pattern_nucleus_2, pattern_list)
 
-cv2.namedWindow("Display window", cv2.WINDOW_NORMAL)
-cv2.resizeWindow("Display window", 800, 900)
-cv2.imshow("Display window", image)
-k = cv2.waitKey(0) # Wait for a keystroke in the window
+kmeans_edImg = applyKmeans(image, 3)
+kmeans_edImg.save('./img/Resultats/kmeans_edImg.jpg')
+#cv2.namedWindow("Display window", cv2.WINDOW_NORMAL)
+#cv2.resizeWindow("Display window", 800, 900)
+#cv2.imshow("Display window", image)
+#k = cv2.waitKey(0) # Wait for a keystroke in the window
