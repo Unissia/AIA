@@ -53,9 +53,11 @@ source_folder = "./Images_originales"
 destination_folder = "./Resultats"
 
 # Mesure de gras
-simplified_image = applyKmeans(image, 3)
-simplified_image.save('./img/Resultats/Simplification.jpg')
+simplified_image = applyKmeans(image, 2)
+simplified_image = cv2.cvtColor(np.array(simplified_image), cv2.COLOR_BGR2RGB)
+Image.fromarray(simplified_image).save('./img/Resultats/Simplification.jpg')
 measureFatThickness(cv2.imread('./img/Resultats/Simplification.jpg'))
+ 
 
 # Mesure de viande
 drawPatternBox(image, pattern_nucleus, pattern_nucleus_2, pattern_list)
