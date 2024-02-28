@@ -78,11 +78,7 @@ def measureFatThickness(image):
     image[cords[0][1]][cords[0][0]] = [255, 0, 0]
     image[cords[1][1]][cords[1][0]] = [255, 0, 0]
 
-    cv2.namedWindow("Display window", cv2.WINDOW_NORMAL)
-    cv2.resizeWindow("Display window", 800, 900)
-    cv2.imshow("Display window", image)
-    k = cv2.waitKey(0) # Wait for a keystroke in the window
-    return 0
+    return distance
 
 
 def findSmallestThickness(topLimit, bottomLimit):
