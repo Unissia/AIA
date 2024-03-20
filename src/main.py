@@ -55,12 +55,21 @@ destination_folder = "./Resultats"
 # Mesure de gras
 simplified_image = applyKmeans(image, 2)
 simplified_image = cv2.cvtColor(np.array(simplified_image), cv2.COLOR_BGR2RGB)
-Image.fromarray(simplified_image).save('./img/Resultats/Simplification.jpg')
-measureFatThickness(cv2.imread('./img/Resultats/Simplification.jpg'))
- 
+Image.fromarray(simplified_image).save('./img/Resultats/kmean.jpg')
+fat_measure, coord_fat = measureFatThickness(cv2.imread('./img/Resultats/kmean.jpg'))
+
 
 # Mesure de viande
-drawPatternBox(image, pattern_nucleus, pattern_nucleus_2, pattern_list)
+[image, simplified_image, _, _, _, _, _]=drawPatternBox(image, pattern_nucleus, pattern_nucleus_2, pattern_list,simplified_image)
 
-# Affichage du temps d'exécution
+# Ajout de la ligne de mesure de gras
+cv2.line(image, coord_fat[0], coord_fat[1], [255, 0, 0], 2)
+cv2.line(simplified_image, coord_fat[0], coord_fat[1], [255, 0, 0], 2)
+
+# Sauvegarde des images
+Image.fromarray(image).save('./img/Resultats/Result.jpg')
+Image.fromarray(simplified_image).save('./img/Resultats/Result_simplified.jpg')
+
 print("Temps d'exécution: %s secondes" % (time.time() - start_time))
+
+# %%

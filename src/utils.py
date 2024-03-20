@@ -74,11 +74,11 @@ def measureFatThickness(image):
     # Calcul de l'épaisseur minimale de la couche de gras
     distance, cords = findSmallestThickness(topLimit, bottomLimit)
     print("Epaisseur minimale de la couche de gras: " + str(distance) + " pixels")
-    print("Points retenus : " + str(cords))
+    print("Points retenus : " + str(cords)+"\n")
     image[cords[0][1]][cords[0][0]] = [255, 0, 0]
     image[cords[1][1]][cords[1][0]] = [255, 0, 0]
 
-    return distance
+    return distance,cords
 
 
 def findSmallestThickness(topLimit, bottomLimit):
@@ -103,7 +103,7 @@ def findSmallestThickness(topLimit, bottomLimit):
     return distance, cords
 
 
-def drawPatternBox(image, pattern_nucleus, pattern_nucleus_2, pattern_list):
+def drawPatternBox(image, pattern_nucleus, pattern_nucleus_2, pattern_list, image_kmean=None):
     """
     Dessine un rectangle autour des motifs de nucleus medius et de colonne vertébrale trouvés.
 
@@ -120,6 +120,7 @@ def drawPatternBox(image, pattern_nucleus, pattern_nucleus_2, pattern_list):
     max_val_nucleus_2, top_left_nucleus, bottom_right_nucleus, top_left_nucleus_2, bottom_right_nucleus_2 = drawPatternBoxNucleus(image, pattern_nucleus, pattern_nucleus_2, nucleus_thresold, nucleus_thresold_2)
     best_backbone_pattern, top_left_backbone, bottom_right_backbone = drawPatternBoxBackbone(image, pattern_list, backbone_thresold)
 
+
     # On rajoute la prise de mesure grossière
     if max_val_nucleus_2 < nucleus_thresold_2: 
         x, y = bottom_right_nucleus
@@ -131,7 +132,8 @@ def drawPatternBox(image, pattern_nucleus, pattern_nucleus_2, pattern_list):
     x_2,y_2 = top_left_backbone
     x_3, y_3 = bottom_right_backbone
     marker_backbone = (marker_nucleus[0], int((y_2 + y_3) / 2))
-    
+
+    epaisseur_muscle = marker_backbone[1] -  marker_nucleus[1]
     # On vérifie si les cotes sont bien situé en dessous du nucleus, 
     # si ce n'est pas le cas c'est que la détecton à été mal effectuée 
     if (marker_nucleus[1] < marker_backbone[1]):
@@ -139,7 +141,13 @@ def drawPatternBox(image, pattern_nucleus, pattern_nucleus_2, pattern_list):
     else: 
         best_backbone_pattern = None
 
-    return [image, best_backbone_pattern is not None, top_left_nucleus, bottom_right_nucleus, marker_nucleus, marker_backbone]
+    if (image_kmean is not None):
+            cv2.rectangle(image_kmean, top_left_backbone, bottom_right_backbone, (0, 255, 0), 2)
+            cv2.rectangle(image_kmean, top_left_nucleus_2, bottom_right_nucleus_2, (0, 0, 255), 2)
+            cv2.line(image_kmean, marker_nucleus, marker_backbone, (255, 0, 0), 2)
+    print(f"Epaisseur de la couche de muscle : {epaisseur_muscle} pixels")
+    print(f"Coordonnées du points bas du nucleus: {marker_nucleus}\n")
+    return [image,image_kmean, best_backbone_pattern is not None, top_left_nucleus, bottom_right_nucleus, marker_nucleus, marker_backbone]
 
 
 def drawPatternBoxNucleus(image, pattern_nucleus, pattern_nucleus_2, nucleus_thresold, nucleus_thresold_2):
