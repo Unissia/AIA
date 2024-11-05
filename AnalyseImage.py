@@ -29,8 +29,7 @@ def FindSmallestThickness(topLimit,lower_boundary):
 def MeasureFatThickness(image,image_path):
     
     temps_debut = time.time()
-   
-                            
+          
     ###################### MeasureMuscleLimit #########################################################################################################
         
     # Paramètres de l'image (doivent correspondre à ceux utilisés pour l'entraînement)
@@ -71,63 +70,84 @@ def MeasureFatThickness(image,image_path):
                 y_min = np.min(y_values)  # Le y min pour ce x
                 lower_boundary.append((x, y_min))  # Ajouter les coordonnées (x, y_min) à la liste
                 image[y_min][x] = [0, 255, 0]
+    else:
+        # Si aucun objet n'est détecté, initialiser les valeurs par défaut
+        xmin, xmax, coord_gluteus, lower_boundary = None, None, None, []
+
     
     #################################################################################################################################################
     
     
     ###################### MeasureFatLimit ##########################################################################################################
     
-    # Seuil d'acceptation
-    differenceThresold = 70
+    # Initialisation de `distance` et `cords` par défaut pour éviter les erreurs dans les prints
+    distance, cords = None, None
+    
+    # Vérifier si xmin, xmax, et lower_boundary sont définis
+    if xmin is not None and xmax is not None and lower_boundary:
+        # Seuil d'acceptation
+        differenceThresold = 70
 
-    # Limites de la couche du gras
-    topLimit = []
-    # Recherche des pixels qui délimitent la couche de gras
-    for x in range(xmin, xmax+1):
-        color = image[0][x][2]  # Composante rouge (canal 2 en BGR)
-        layers = 0
-        for y in range(0, image.shape[0]):
-            if layers > 1:
-                break
+        # Limites de la couche du gras
+        topLimit = []
+        # Recherche des pixels qui délimitent la couche de gras
+        for x in range(xmin, xmax+1):
+            color = image[0][x][2]  # Composante rouge (canal 2 en BGR)
+            layers = 0
+            for y in range(0, image.shape[0]):
+                if layers > 1:
+                    break
 
-            if abs(int(image[y][x][2]) - color) > differenceThresold:
-                if layers == 0:
-                    topLimit.append((x, y))
-                    color = int(image[y][x][2])  # Mettre à jour la couleur pour la prochaine comparaison
-                    image[y][x] = [0, 255, 0]    # Colorer en rouge
-                layers += 1
+                if abs(int(image[y][x][2]) - color) > differenceThresold:
+                    if layers == 0:
+                        topLimit.append((x, y))
+                        color = int(image[y][x][2])  # Mettre à jour la couleur pour la prochaine comparaison
+                        image[y][x] = [0, 255, 0]    # Colorer en rouge
+                    layers += 1
         
     #################################################################################################################################################
-    
-    distance, cords = FindSmallestThickness(topLimit, lower_boundary)
-    dist_mm = distance * 0.731
-    if cords:
-        # Récupérer les coordonnées des points haut et bas
-        pixelTop, pixelBottom = cords
+        if topLimit and lower_boundary:
+            distance, cords = FindSmallestThickness(topLimit, lower_boundary)
+            dist_mm = distance * 0.731
+            if cords:
+                # Récupérer les coordonnées des points haut et bas
+                pixelTop, pixelBottom = cords
 
-        # Tracer une ligne rouge entre les deux points
-        cv2.line(image, (pixelTop[0], pixelTop[1]), (pixelBottom[0], pixelBottom[1]), (0, 0, 255), 1)
+                # Tracer une ligne rouge entre les deux points
+                cv2.line(image, (pixelTop[0], pixelTop[1]), (pixelBottom[0], pixelBottom[1]), (0, 0, 255), 1)
+                
+                
+                scale_percent = 100  # Ajuster ce pourcentage si l'image est trop grande ou trop petite
+                width = int(image.shape[1] * scale_percent / 100)
+                height = int(image.shape[0] * scale_percent / 100)
+                image = cv2.resize(image, (width, height))
+
+                # Afficher l'image avec la ligne tracée
+                """cv2.imshow("Image avec distance minimale", image)
+                cv2.waitKey(0)  # Attendre qu'une touche soit pressée pour fermer la fenêtre
+                cv2.destroyAllWindows()
+                #cv2.imwrite('./RESU/resultat_epaisseur_minimale.png', image)"""
+        else:
+            print("Aucune limite supérieure ou inférieure n'a été détectée.")
+    else:
+        print("Aucun objet détecté dans l'image.")
         
         
-        scale_percent = 100  # Ajuster ce pourcentage si l'image est trop grande ou trop petite
-        width = int(image.shape[1] * scale_percent / 100)
-        height = int(image.shape[0] * scale_percent / 100)
-        image = cv2.resize(image, (width, height))
-
-        # Afficher l'image avec la ligne tracée
-        """cv2.imshow("Image avec distance minimale", image)
-        cv2.waitKey(0)  # Attendre qu'une touche soit pressée pour fermer la fenêtre
-        cv2.destroyAllWindows()
-        #cv2.imwrite('./RESU/resultat_epaisseur_minimale.png', image)"""
+    # Affichage des données seulement si elles sont définies
+    if distance is not None and cords is not None:
+        dist_mm = distance * 0.731
+        print("Distance minimale :", distance, "px")
+        print("Distance minimale :", dist_mm, "mm")
+        print("Coordonnées des points :", cords)
+    else:
+        print("Aucune distance minimale ou coordonnées valides n'ont été détectées.")
 
 
-    # Afficher la distance et les coordonnées des points
-    print("Distance minimale :", distance,"px")
-    print("Distance minimale :", dist_mm,"mm")
+   
     duree = time.time() - temps_debut
     print(f"Le programme a mis {duree} secondes à s'exécuter")
-    print("Coordonnées des points :", cords)
-    return(image,coord_gluteus)
+
+    return image, coord_gluteus if coord_gluteus else (0, 0)
 
 
 def ajout_box(image,coord_glut):
@@ -197,9 +217,9 @@ for filename in os.listdir(motif_directory):
 
 
 # Charger le modèle U-Net sauvegardé
-model = load_model('MODEL_VAC.h5')
+model = load_model('C:/Users/Paul/Documents/ALGO_PIGSEL/PIGSEL_AIA/MODELES_IA_H5/MODEL_VAC.h5')
          
-image_path = './UNET/IMG_SOURCE/PHOTO_K_600_REDIM/0574.png'
+image_path = './img/000002.jpg'
 image = cv2.imread(image_path)
 
 if image is None:
@@ -221,20 +241,3 @@ MFT.start()
 
 duree = time.time()-timer
 print("la durre est de :",duree) 
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-    
-
-    
