@@ -56,14 +56,14 @@ def max_white_light(color, wait_ms=10):
         time.sleep(wait_ms / 1000.0)
 
 try:
-    max_white_light(Color(255, 255, 255))
+    max_white_light(Color(225, 200, 115))
     while True:  # Boucle infinie pour surveiller les boutons.
         time.sleep(0.1)  # Réduit l'intervalle de vérification pour améliorer la réactivité.
         cam.set_controls({"AfMode": controls.AfModeEnum.Manual, "LensPosition": DIST})
 
         if bouton.is_pressed or keyboard.is_pressed("p"):  # Si le bouton de capture d'image est pressé...
             # Génére un nom de fichier basé sur la date et l'heure actuelles pour la capture d'image.
-            filename = "/home/unissia/Documents/PHOTOS_KERMENE_AF_3008/" + strftime("%Y%m%d-%H%M%S") + '.png'
+            filename = "/home/unissia/Documents/PHOTOs/" + strftime("%Y%m%d-%H%M%S") + '.png'
             
             # Capture une image et la sauvegarde sous le nom de fichier généré.
             cam.capture_file(filename, format="png", wait=None)
