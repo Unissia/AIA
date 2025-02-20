@@ -113,7 +113,7 @@ After=multi-user.target graphical.target
 
 [Service]
 ExecStartPre=/bin/sleep 3
-ExecStart=/usr/bin/python3 /home/unissia/Documents/AIA/src/PHOTO_AF.py
+ExecStart=/usr/bin/python3 /home/unissia/Documents/AIA/src/PHOTO_AF_FLASH.py
 ExecStop=/usr/bin/python3 -c "from rpi_ws281x import PixelStrip, Color; strip=PixelStrip(50, 18, 800000, 10, False, 255, 0); strip.begin(); [strip.setPixelColor(i, Color(0, 0, 0)) for i in range(strip.numPixels())]; strip.show()"
 WorkingDirectory=/home/unissia/Documents/AIA/src
 Restart=always
