@@ -62,7 +62,7 @@ GPIO.setup(22, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)  # BP2 - Décrementer
 # Chemins des fichiers
 CONFIG_FILE = "/home/unissia/Documents/DEPOTOIR/numero_porc.json"
 BASE_DIR = "/home/unissia/Documents/KERMENE_1704"
-MODEL_PATH = 'DOUBLE_QUINTOA_1024.tflite'
+MODEL_PATH = '/home/unissia/Documents/DEPOTOIR/TEST_IA/DOUBLE_QUINTOA_1024.tflite'
 
 # Facteur de conversion pixel/mm
 PIXEL_TO_MM = 150.0 / 239.0
